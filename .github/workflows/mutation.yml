@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: '0 13 * * 5'
 
+permissions:
+  contents: read
+
 jobs:
   applications:
     name: Mutation Test ${{ matrix.java-version }}
@@ -22,15 +25,20 @@ jobs:
       JAVA_VERSION: ${{ matrix.java-version }}
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
+        with:
+          egress-policy: audit
+
       - name: Git Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
       - name: Set JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2 # v3.11.0
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.java-version }}
       - name: Enable Maven Cache
-        uses: actions/cache@v3.2.5
+        uses: actions/cache@6998d139ddd3e68c71e9e398d8e40b71a2f39812 # v3.2.5
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -45,7 +53,7 @@ jobs:
         env:
           MAVEN_OPTS: "-Xmx1g"
       - name: Archive pitest reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: pit-reports
           path: unit-tests/target/pit-reports
